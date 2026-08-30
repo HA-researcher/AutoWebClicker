@@ -5,6 +5,8 @@ const STATUS = {
   PLAYING: '再生中',
 };
 
+let currentStatus = STATUS.IDLE;
+
 // DOM要素の取得
 const recordBtn = document.getElementById('recordBtn');
 const playBtn = document.getElementById('playBtn');
@@ -20,7 +22,10 @@ const fileInput = document.getElementById('fileInput');
 const profilesList = document.getElementById('profilesList');
 
 // ボタンイベントリスナー
-recordBtn.addEventListener('click', () => {
+recordBtn.addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  currentStatus = STATUS.RECORDING;
   chrome.runtime.sendMessage({ action: 'startRecording' }).catch(err => {
     console.error('Failed to start recording:', err);
   });
@@ -36,7 +41,10 @@ playBtn.addEventListener('click', () => {
   });
 });
 
-stopBtn.addEventListener('click', () => {
+stopBtn.addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  currentStatus = STATUS.IDLE;
   chrome.runtime.sendMessage({ action: 'stop' }).catch(err => {
     console.error('Failed to stop:', err);
   });

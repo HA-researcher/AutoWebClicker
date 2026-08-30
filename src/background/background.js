@@ -7,9 +7,27 @@ let state = {
   profiles: {},
 };
 
+function persistState() {
+  chrome.storage.local.set({
+    state: {
+      isRecording: state.isRecording,
+      isPlaying: state.isPlaying,
+      recordedEvents: state.recordedEvents,
+      currentTab: state.currentTab,
+      profiles: state.profiles,
+    }
+  });
+}
+
 // ストレージから状態を復元
-chrome.storage.local.get(['profiles'], (result) => {
-  if (result.profiles) {
+chrome.storage.local.get(['state', 'profiles'], (result) => {
+  if (result.state) {
+    state = {
+      ...state,
+      ...result.state,
+      profiles: result.state.profiles || result.profiles || {}
+    };
+  } else if (result.profiles) {
     state.profiles = result.profiles;
   }
   broadcastStatus();
@@ -55,17 +73,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 function handleStartRecording() {
   state.isRecording = true;
   state.recordedEvents = [];
+  persistState();
   
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs.length > 0) {
       state.currentTab = tabs[0].id;
-      // コンテントスクリプトに録画開始を通知
-      chrome.tabs.sendMessage(state.currentTab, { action: 'startRecording' })
-        .catch(() => console.log('Content script not available'));
+      persistState();
+      startRecordingOnTab(state.currentTab, 0);
     }
   });
   
   broadcastStatus('録画中');
+}
+
+function startRecordingOnTab(tabId, retryCount) {
+  chrome.tabs.sendMessage(tabId, { action: 'startRecording' })
+    .then(() => {
+      console.log('[AutoWebClicker] Recording command delivered to content script');
+    })
+    .catch(() => {
+      if (retryCount < 10) {
+        setTimeout(() => startRecordingOnTab(tabId, retryCount + 1), 250);
+      } else {
+        console.warn('[AutoWebClicker] Content script did not respond; recording will not capture events');
+      }
+    });
 }
 
 // 再生開始
@@ -85,6 +117,7 @@ function handleStartPlayback(loopCount = 1) {
 function handleStop() {
   state.isRecording = false;
   state.isPlaying = false;
+  persistState();
   
   // コンテントスクリプトに停止を通知
   if (state.currentTab) {
@@ -98,6 +131,7 @@ function handleStop() {
 // プロファイル保存
 function handleSaveProfile(profileName) {
   state.profiles[profileName] = [...state.recordedEvents];
+  persistState();
   chrome.storage.local.set({ profiles: state.profiles });
   broadcastProfiles();
 }
@@ -243,5 +277,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       button: message.event.button,
       timestamp: message.event.timestamp
     });
+    persistState();
   }
 });
