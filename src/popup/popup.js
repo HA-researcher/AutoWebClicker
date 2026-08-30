@@ -21,7 +21,9 @@ const profilesList = document.getElementById('profilesList');
 
 // ボタンイベントリスナー
 recordBtn.addEventListener('click', () => {
-  chrome.runtime.sendMessage({ action: 'startRecording' });
+  chrome.runtime.sendMessage({ action: 'startRecording' }).catch(err => {
+    console.error('Failed to start recording:', err);
+  });
 });
 
 playBtn.addEventListener('click', () => {
@@ -29,11 +31,15 @@ playBtn.addEventListener('click', () => {
   chrome.runtime.sendMessage({ 
     action: 'startPlayback',
     loopCount: loopCount 
+  }).catch(err => {
+    console.error('Failed to start playback:', err);
   });
 });
 
 stopBtn.addEventListener('click', () => {
-  chrome.runtime.sendMessage({ action: 'stop' });
+  chrome.runtime.sendMessage({ action: 'stop' }).catch(err => {
+    console.error('Failed to stop:', err);
+  });
 });
 
 saveBtn.addEventListener('click', () => {
@@ -45,6 +51,8 @@ saveBtn.addEventListener('click', () => {
   chrome.runtime.sendMessage({ 
     action: 'saveProfile',
     profileName: profileName
+  }).catch(err => {
+    console.error('Failed to save profile:', err);
   });
 });
 
@@ -57,11 +65,15 @@ loadBtn.addEventListener('click', () => {
   chrome.runtime.sendMessage({ 
     action: 'loadProfile',
     profileName: profileName
+  }).catch(err => {
+    console.error('Failed to load profile:', err);
   });
 });
 
 exportBtn.addEventListener('click', () => {
-  chrome.runtime.sendMessage({ action: 'exportMacro' });
+  chrome.runtime.sendMessage({ action: 'exportMacro' }).catch(err => {
+    console.error('Failed to export macro:', err);
+  });
 });
 
 importBtn.addEventListener('click', () => {
@@ -78,6 +90,8 @@ fileInput.addEventListener('change', (e) => {
         chrome.runtime.sendMessage({ 
           action: 'importMacro',
           data: data
+        }).catch(err => {
+          console.error('Failed to import macro:', err);
         });
       } catch (error) {
         alert('ファイル形式が正しくありません');

@@ -71,7 +71,7 @@ function handleStartRecording() {
 // 再生開始
 function handleStartPlayback(loopCount = 1) {
   if (state.recordedEvents.length === 0) {
-    alert('再生するマクロが記録されていません');
+    console.warn('再生するマクロが記録されていません');
     return;
   }
   
@@ -119,14 +119,22 @@ function handleDeleteProfile(profileName) {
 
 // マクロエクスポート
 function handleExportMacro() {
-  const dataStr = JSON.stringify(state.recordedEvents, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-  
-  chrome.downloads.download({
-    url: dataUri,
-    filename: `macro-${Date.now()}.json`,
-    saveAs: true
-  });
+  try {
+    const dataStr = JSON.stringify(state.recordedEvents, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    
+    if (chrome.downloads) {
+      chrome.downloads.download({
+        url: dataUri,
+        filename: `macro-${Date.now()}.json`,
+        saveAs: true
+      });
+    } else {
+      console.error('Chrome downloads API not available');
+    }
+  } catch (error) {
+    console.error('Export error:', error);
+  }
 }
 
 // マクロインポート
@@ -156,8 +164,19 @@ async function playback(events, loopCount) {
 async function executeEvent(event) {
   return new Promise((resolve) => {
     // CDP経由でマウスイベントを実行
-    if (state.currentTab) {
+    if (!state.currentTab || !state.isPlaying) {
+      resolve();
+      return;
+    }
+    
+    try {
       chrome.debugger.attach({ tabId: state.currentTab }, '1.3', () => {
+        if (chrome.runtime.lastError) {
+          console.error('Debugger attach error:', chrome.runtime.lastError);
+          resolve();
+          return;
+        }
+        
         const params = {
           type: event.type,
           x: event.x,
@@ -170,10 +189,16 @@ async function executeEvent(event) {
           'Input.dispatchMouseEvent',
           params,
           () => {
+            if (chrome.runtime.lastError) {
+              console.error('Debugger command error:', chrome.runtime.lastError);
+            }
             setTimeout(resolve, event.delay || 50);
           }
         );
       });
+    } catch (error) {
+      console.error('Event execution error:', error);
+      resolve();
     }
   });
 }
