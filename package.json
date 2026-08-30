@@ -1,0 +1,18 @@
+{
+  "name": "autowebclicker",
+  "version": "1.0.0",
+  "description": "OSネイティブレベルの入力シミュレーションによるオートクリッカー Chrome拡張機能",
+  "main": "src/background/background.js",
+  "scripts": {
+    "dev": "echo 'Load extension in Chrome via developer mode (chrome://extensions/)'",
+    "build": "echo 'Extension is ready to load'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "autoclicker",
+    "macro",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT"
+}

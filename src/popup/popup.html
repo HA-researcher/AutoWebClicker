@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoWebClicker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>AutoWebClicker</h1>
+    
+    <div class="status-section">
+      <p>ステータス: <span id="status">停止中</span></p>
+    </div>
+
+    <div class="control-section">
+      <button id="recordBtn" class="btn btn-primary">🔴 録画開始</button>
+      <button id="playBtn" class="btn btn-success" disabled>▶ 再生</button>
+      <button id="stopBtn" class="btn btn-danger" disabled>⏹ 停止</button>
+    </div>
+
+    <div class="settings-section">
+      <label for="loopCount">ループ回数:</label>
+      <input type="number" id="loopCount" min="1" max="1000" value="1">
+    </div>
+
+    <div class="profile-section">
+      <label for="profileName">プロファイル名:</label>
+      <input type="text" id="profileName" placeholder="プロファイル名を入力">
+      <button id="saveBtn" class="btn btn-secondary">💾 保存</button>
+      <button id="loadBtn" class="btn btn-secondary">📂 読込</button>
+    </div>
+
+    <div class="io-section">
+      <button id="exportBtn" class="btn btn-secondary">📤 エクスポート (JSON)</button>
+      <button id="importBtn" class="btn btn-secondary">📥 インポート (JSON)</button>
+      <input type="file" id="fileInput" accept=".json" style="display: none;">
+    </div>
+
+    <div class="profile-list">
+      <label>保存済みプロファイル:</label>
+      <div id="profilesList"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
