@@ -150,10 +150,22 @@ function loadProfilesList(profiles) {
   Object.keys(profiles).forEach(name => {
     const item = document.createElement('div');
     item.className = 'profile-item';
-    item.innerHTML = `
-      <span>${name}</span>
-      <button onclick="deleteProfile('${name}')">削除</button>
-    `;
+    
+    const span = document.createElement('span');
+    span.textContent = name;
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '削除';
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.setAttribute('data-profile-name', name);
+    deleteBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      deleteProfile(name);
+    });
+    
+    item.appendChild(span);
+    item.appendChild(deleteBtn);
     profilesList.appendChild(item);
   });
 }
