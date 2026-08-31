@@ -92,11 +92,21 @@ function startRecordingOnTab(tabId, retryCount) {
       console.log('[AutoWebClicker] Recording command delivered to content script');
     })
     .catch(() => {
-      if (retryCount < 10) {
-        setTimeout(() => startRecordingOnTab(tabId, retryCount + 1), 250);
-      } else {
+      if (retryCount > 0) {
         console.warn('[AutoWebClicker] Content script did not respond; recording will not capture events');
+        return;
       }
+
+      chrome.scripting.executeScript({
+        target: { tabId },
+        files: ['src/content-script/content-script.js']
+      }).then(() => {
+        return chrome.tabs.sendMessage(tabId, { action: 'startRecording' });
+      }).then(() => {
+        console.log('[AutoWebClicker] Content script injected and recording started');
+      }).catch((error) => {
+        console.error('[AutoWebClicker] Could not inject content script:', error);
+      });
     });
 }
 

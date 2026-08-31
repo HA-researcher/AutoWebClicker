@@ -170,6 +170,22 @@ function deleteProfile(name) {
 
 // 初期化
 window.addEventListener('load', () => {
-  chrome.runtime.sendMessage({ action: 'getStatus' });
-  chrome.runtime.sendMessage({ action: 'getProfiles' });
+  chrome.runtime.sendMessage({ action: 'getStatus' }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Failed to get status:', chrome.runtime.lastError);
+      return;
+    }
+    if (response && response.status) {
+      updateUI(response.status);
+    }
+  });
+  chrome.runtime.sendMessage({ action: 'getProfiles' }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Failed to get profiles:', chrome.runtime.lastError);
+      return;
+    }
+    if (response && response.profiles) {
+      loadProfilesList(response.profiles);
+    }
+  });
 });
