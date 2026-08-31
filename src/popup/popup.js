@@ -164,6 +164,17 @@ function deleteProfile(name) {
     chrome.runtime.sendMessage({ 
       action: 'deleteProfile',
       profileName: name
+    }).then(() => {
+      // 削除後、プロファイルリストを更新
+      setTimeout(() => {
+        chrome.runtime.sendMessage({ action: 'getProfiles' }, (response) => {
+          if (response && response.profiles) {
+            loadProfilesList(response.profiles);
+          }
+        });
+      }, 100);
+    }).catch(err => {
+      console.error('Failed to delete profile:', err);
     });
   }
 }

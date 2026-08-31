@@ -118,9 +118,17 @@ function handleStartPlayback(loopCount = 1) {
   }
   
   state.isPlaying = true;
-  broadcastStatus('再生中');
+  persistState();
   
-  playback(state.recordedEvents, loopCount);
+  // 再生時に現在のタブを確認
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs.length > 0) {
+      state.currentTab = tabs[0].id;
+      persistState();
+    }
+    broadcastStatus('再生中');
+    playback(state.recordedEvents, loopCount);
+  });
 }
 
 // 停止
@@ -150,6 +158,7 @@ function handleSaveProfile(profileName) {
 function handleLoadProfile(profileName) {
   if (state.profiles[profileName]) {
     state.recordedEvents = [...state.profiles[profileName]];
+    persistState();
     console.log(`プロファイル「${profileName}」を読み込みました`);
   }
 }
@@ -157,6 +166,7 @@ function handleLoadProfile(profileName) {
 // プロファイル削除
 function handleDeleteProfile(profileName) {
   delete state.profiles[profileName];
+  persistState();
   chrome.storage.local.set({ profiles: state.profiles });
   broadcastProfiles();
 }
