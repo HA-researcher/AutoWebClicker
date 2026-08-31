@@ -16,13 +16,16 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
       switch (message.action) {
         case 'startRecording':
           startRecording();
+          sendResponse({ ok: true });
           break;
         case 'stopRecording':
           stopRecording();
+          sendResponse({ ok: true });
           break;
       }
     } catch (error) {
       console.error('[AutoWebClicker] Message handler error:', error);
+      sendResponse({ ok: false });
     }
   });
 }
