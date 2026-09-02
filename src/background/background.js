@@ -7,8 +7,10 @@ let state = {
   profiles: {},
 };
 
-function persistState() {
-  chrome.storage.local.set({
+let persistTimer = null;
+
+function persistState(immediate = false) {
+  const snapshot = {
     state: {
       isRecording: state.isRecording,
       isPlaying: state.isPlaying,
@@ -16,7 +18,25 @@ function persistState() {
       currentTab: state.currentTab,
       profiles: state.profiles,
     }
-  });
+  };
+
+  if (immediate) {
+    if (persistTimer) {
+      clearTimeout(persistTimer);
+      persistTimer = null;
+    }
+    chrome.storage.local.set(snapshot);
+    return;
+  }
+
+  if (persistTimer) {
+    clearTimeout(persistTimer);
+  }
+
+  persistTimer = setTimeout(() => {
+    chrome.storage.local.set(snapshot);
+    persistTimer = null;
+  }, 250);
 }
 
 // ストレージから状態を復元
@@ -149,8 +169,7 @@ function handleStop() {
 // プロファイル保存
 function handleSaveProfile(profileName) {
   state.profiles[profileName] = [...state.recordedEvents];
-  persistState();
-  chrome.storage.local.set({ profiles: state.profiles });
+  persistState(true);
   broadcastProfiles();
 }
 
@@ -158,7 +177,7 @@ function handleSaveProfile(profileName) {
 function handleLoadProfile(profileName) {
   if (state.profiles[profileName]) {
     state.recordedEvents = [...state.profiles[profileName]];
-    persistState();
+    persistState(true);
     console.log(`プロファイル「${profileName}」を読み込みました`);
   }
 }
@@ -166,8 +185,7 @@ function handleLoadProfile(profileName) {
 // プロファイル削除
 function handleDeleteProfile(profileName) {
   delete state.profiles[profileName];
-  persistState();
-  chrome.storage.local.set({ profiles: state.profiles });
+  persistState(true);
   broadcastProfiles();
 }
 
@@ -195,6 +213,7 @@ function handleExportMacro() {
 function handleImportMacro(data) {
   if (Array.isArray(data)) {
     state.recordedEvents = data;
+    persistState(true);
     console.log('マクロをインポートしました');
   }
 }
