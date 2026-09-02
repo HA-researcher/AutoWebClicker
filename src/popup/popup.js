@@ -73,6 +73,12 @@ loadBtn.addEventListener('click', () => {
   chrome.runtime.sendMessage({ 
     action: 'loadProfile',
     profileName: profileName
+  }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Failed to load profile:', chrome.runtime.lastError);
+    } else if (!response || !response.ok) {
+      console.error('Profile was not found:', profileName);
+    }
   }).catch(err => {
     console.error('Failed to load profile:', err);
   });
@@ -176,17 +182,17 @@ function deleteProfile(name) {
     chrome.runtime.sendMessage({ 
       action: 'deleteProfile',
       profileName: name
-    }).then(() => {
+    }, (response) => {
+      if (chrome.runtime.lastError || !response || !response.ok) {
+        console.error('Failed to delete profile:', chrome.runtime.lastError || response);
+        return;
+      }
       // 削除後、プロファイルリストを更新
-      setTimeout(() => {
-        chrome.runtime.sendMessage({ action: 'getProfiles' }, (response) => {
-          if (response && response.profiles) {
-            loadProfilesList(response.profiles);
-          }
-        });
-      }, 100);
-    }).catch(err => {
-      console.error('Failed to delete profile:', err);
+      chrome.runtime.sendMessage({ action: 'getProfiles' }, (profilesResponse) => {
+        if (profilesResponse && profilesResponse.profiles) {
+          loadProfilesList(profilesResponse.profiles);
+        }
+      });
     });
   }
 }

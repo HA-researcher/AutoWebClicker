@@ -69,10 +69,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       handleSaveProfile(message.profileName);
       break;
     case 'loadProfile':
-      handleLoadProfile(message.profileName);
+      sendResponse({ ok: handleLoadProfile(message.profileName) });
       break;
     case 'deleteProfile':
-      handleDeleteProfile(message.profileName);
+      sendResponse({ ok: handleDeleteProfile(message.profileName) });
       break;
     case 'exportMacro':
       handleExportMacro();
@@ -179,14 +179,20 @@ function handleLoadProfile(profileName) {
     state.recordedEvents = [...state.profiles[profileName]];
     persistState(true);
     console.log(`プロファイル「${profileName}」を読み込みました`);
+    return true;
   }
+  return false;
 }
 
 // プロファイル削除
 function handleDeleteProfile(profileName) {
+  if (!Object.prototype.hasOwnProperty.call(state.profiles, profileName)) {
+    return false;
+  }
   delete state.profiles[profileName];
   persistState(true);
   broadcastProfiles();
+  return true;
 }
 
 // マクロエクスポート
